@@ -34,10 +34,10 @@ function upload()
 
   //ketika tidak ada gambar yang dipilih
   if ($error == 4) {
-    echo "<script>
-          alert 'pilih gambar terlebih dahulu!');
-          </script>";
-    return false;
+    //echo "<script>
+    //      alert ('pilih gambar terlebih dahulu!');
+    //      </script>";
+    return 'nofoto.jpg';
   }
 
   //cek ekstensi file
@@ -46,7 +46,7 @@ function upload()
   $ekstensi_file = strtolower(end($ekstensi_file));
   if (!in_array($ekstensi_file, $daftar_gambar)) {
     echo "<script>
-          alert 'yang anda pilih bukan gambar!');
+          alert ('yang anda pilih bukan gambar!');
           </script>";
     return false;
   }
@@ -54,7 +54,7 @@ function upload()
   //cek type file
   if ($tipe_file != 'image/jpeg' && $tipe_file != 'image/png') {
     echo "<script>
-          alert 'yang anda pilih bukan gambar!');
+          alert ('yang anda pilih bukan gambar!');
           </script>";
     return false;
   }
@@ -63,7 +63,7 @@ function upload()
   //maksimal 5MB == 5000000
   if ($ukuran_file > 5000000) {
     echo "<script>
-          alert 'ukuran terlalu besar!');
+          alert ('ukuran terlalu besar!');
           </script>";
     return false;
   }
@@ -108,6 +108,13 @@ function tambah($data)
 function hapus($id)
 {
   $conn = koneksi();
+
+  //menghapus gambar di folder img
+  $mhs = query("SELECT * FROM mahasiswa WHERE id = $id");
+  if ($mhs['gambar'] != 'nofoto.jpg') {
+    unlink('img/' . $mhs['gambar']);
+  }
+
   mysqli_query($conn, "DELETE FROM mahasiswa WHERE id = $id") or die(mysqli_error($conn));
   return mysqli_affected_rows($conn);
 }
@@ -121,7 +128,16 @@ function ubah($data)
   $nrp = htmlspecialchars($data['nrp']);
   $email = htmlspecialchars($data['email']);
   $jurusan = htmlspecialchars($data['jurusan']);
-  $gambar = htmlspecialchars($data['gambar']);
+  $gambar_lama = htmlspecialchars($data['gambar_lama']);
+
+  $gambar = upload();
+  if (!$gambar) {
+    return false;
+  }
+
+  if ($gambar == 'nofoto.jpg') {
+    $gambar = $gambar_lama;
+  }
 
   $query = "UPDATE mahasiswa SET
             nama = '$nama',
